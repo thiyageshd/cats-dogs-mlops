@@ -1,0 +1,10 @@
+# Serving-only dependencies (keeps the container image slim).
+# Full dev/training deps live in requirements.txt.
+tensorflow==2.16.2
+numpy==1.26.4
+pillow==10.4.0
+fastapi==0.111.1
+uvicorn==0.30.3
+python-multipart==0.0.9
+pydantic==2.8.2
+prometheus-fastapi-instrumentator==7.0.0

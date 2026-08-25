@@ -1,0 +1,16 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+mlruns/
+mlartifacts/
+mlflow.db
+data/
+tests/
+.venv/
+venv/
+*.md
+requirements.txt
+.dvc/
+actions-runner/

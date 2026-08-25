@@ -1,0 +1,25 @@
+# Core data / ML
+numpy==1.26.4
+pillow==10.4.0
+tensorflow==2.16.2
+requests==2.32.3
+
+# Experiment tracking (M1)
+mlflow==2.14.3
+matplotlib==3.9.1
+scikit-learn==1.5.1
+
+# Data versioning (M1)
+dvc==3.55.2
+pathspec==0.12.1  # newer pathspec (1.x) breaks dvc 3.55.2's gitignore matching internals
+
+# Serving (M2)
+fastapi==0.111.1
+uvicorn==0.30.3
+python-multipart==0.0.9
+pydantic==2.8.2
+prometheus-fastapi-instrumentator==7.0.0
+
+# Testing (M3)
+pytest==8.3.2
+httpx==0.27.0

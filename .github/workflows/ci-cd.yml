@@ -1,0 +1,97 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/cats-dogs-mlops
+
+jobs:
+  # M3: build, test, and publish the image. Runs on every push/PR to main,
+  # on GitHub-hosted runners (safe for PRs from forks too).
+  build-test-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      pushed: ${{ steps.push_flag.outputs.pushed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff
+
+      - name: Lint (ruff)
+        run: ruff check src tests scripts
+
+      - name: Run unit tests
+        run: pytest tests/ -v
+
+      # Tiny fixture sample, 1 epoch — proves the pipeline works end-to-end.
+      # Writes to /tmp, so it never overwrites the real committed model artifact.
+      - name: Train model (smoke)
+        run: |
+          python src/preprocess.py --raw tests/fixtures/sample_images --out /tmp/ci_processed \
+            --val-frac 0.2 --test-frac 0.2
+          python src/train.py --data /tmp/ci_processed --epochs 1 \
+            --model-out /tmp/ci_model.keras --meta-out /tmp/ci_meta.json
+
+      - name: Build Docker image
+        run: docker build -t ${{ env.IMAGE }}:${{ github.sha }} -t ${{ env.IMAGE }}:latest .
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push image (main only)
+        id: push_flag
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push ${{ env.IMAGE }}:${{ github.sha }}
+          docker push ${{ env.IMAGE }}:latest
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload model artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+
+  # M4: redeploy locally and smoke-test. Only ever triggered by a push to
+  # main (never pull_request/pull_request_target) — a self-hosted runner
+  # must never run code from an untrusted fork PR.
+  deploy-and-smoke-test:
+    needs: build-test-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.build-test-push.outputs.pushed == 'true'
+    runs-on: [self-hosted, macOS, cats-dogs-mlops]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pull new image and redeploy
+        run: |
+          docker compose pull api
+          docker compose up -d --no-build prometheus grafana
+          docker compose up -d --no-build --force-recreate api
+
+      - name: Smoke test
+        run: bash scripts/smoke_test.sh http://localhost:8000

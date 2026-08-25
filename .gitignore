@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Node (unused here, kept for parity)
+node_modules/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# MLflow
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Data (raw is too large + regenerable from Kaggle; processed is DVC-tracked, not git-tracked)
+data/raw/
+data/processed/
+!data/processed.dvc
+
+# DVC local cache
+/.dvc/cache
+/.dvc/tmp
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+docs/
+
+# Recording (too large for git; publish as a GitHub Release asset instead)
+*.mp4
+
+# Self-hosted runner install (machine-local, never committed)
+actions-runner/

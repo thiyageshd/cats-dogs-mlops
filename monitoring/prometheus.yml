@@ -1,0 +1,10 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "cats-dogs-api"
+    metrics_path: /metrics
+    static_configs:
+      # 'api' is the service name inside the docker-compose network.
+      - targets: ["api:8000"]

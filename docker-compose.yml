@@ -1,0 +1,43 @@
+# Local dev:      docker compose up --build
+# CD redeploy:     docker compose pull api && docker compose up -d --no-build
+#   (the `image:` tag is what the self-hosted CD job pulls from GHCR after CI
+#   pushes a new build; `build:` is what local `--build` uses to test changes
+#   before they're pushed at all.)
+#
+#   API        -> http://localhost:8000/docs
+#   Metrics    -> http://localhost:8000/metrics
+#   Prometheus -> http://localhost:9090
+#   Grafana    -> http://localhost:3000  (admin / admin)
+services:
+  api:
+    build: .
+    image: ghcr.io/thiyageshd/cats-dogs-mlops:latest
+    container_name: cats-dogs-api
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
