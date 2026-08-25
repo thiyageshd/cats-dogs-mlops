@@ -17,6 +17,9 @@ mlruns/
 mlartifacts/
 mlflow.db
 
+# Local-only training plots (also logged as MLflow artifacts under mlartifacts/)
+models/figures/
+
 # Data (raw is too large + regenerable from Kaggle; processed is DVC-tracked, not git-tracked)
 data/raw/
 data/processed/

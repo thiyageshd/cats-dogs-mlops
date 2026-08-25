@@ -1,0 +1,14 @@
+{
+  "img_size": 224,
+  "class_names": [
+    "cat",
+    "dog"
+  ],
+  "metrics": {
+    "test_loss": 0.6113,
+    "test_accuracy": 0.6621,
+    "test_auc": 0.8214
+  },
+  "epochs": 6,
+  "sample_size": null
+}
