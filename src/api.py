@@ -90,7 +90,7 @@ app = FastAPI(
     title="Cats vs Dogs Classification API",
     description="Predicts whether an uploaded image is a cat or a dog. "
                 "Serves the CNN trained in the MLOps pipeline.",
-    version="1.0.1",
+    version="1.0.2",
     lifespan=lifespan,
 )
 
